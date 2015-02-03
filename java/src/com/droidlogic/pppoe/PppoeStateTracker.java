@@ -362,6 +362,7 @@ public class PppoeStateTracker implements NetworkStateTracker {
                 boolean newNetworkstate = false;
                 PppoeDevInfo info = new PppoeDevInfo();
 
+
                 switch (msg.what) {
                 case EVENT_DISCONNECTED:
                     Slog.i(TAG, "[EVENT: PPP DOWN]");
@@ -394,6 +395,9 @@ public class PppoeStateTracker implements NetworkStateTracker {
                         setPppoeState(newNetworkstate, EVENT_DISCONNECTED, PppoeManager.PROP_VAL_PPP_NOERR);
                     } else {
                         setPppoeState(newNetworkstate, EVENT_CONNECT_FAILED, ppp_err);
+                    }
+                    if (mNetworkAgent != null && mNetworkInfo.getState() == NetworkInfo.State.DISCONNECTED) {
+                        mNetworkAgent.sendNetworkInfo(mNetworkInfo);
                     }
                     break;
 
@@ -442,14 +446,15 @@ public class PppoeStateTracker implements NetworkStateTracker {
 
                     mNetworkAgent = new NetworkAgent(mLooper, mContext, mNetworkName,
                     mNetworkInfo, mNetworkCapabilities,mLinkProperties,60) {
-                            @Override
-                            public void unwanted() {
+                        @Override
+                        public void unwanted() {
                                 // We are user controlled, not driven by NetworkRequest.
-                            }
-                        };
-                        if (mNetworkAgent != null) {
-                            mNetworkAgent.sendNetworkInfo(mNetworkInfo);
-                            }
+                        }
+                    };
+
+                    if (mNetworkAgent != null) {
+                        mNetworkAgent.sendNetworkInfo(mNetworkInfo);
+                    }
 //                      if (mNetworkAgent != null) mNetworkAgent.sendLinkProperties(mLinkProperties);
                     break;
                 }

@@ -103,7 +103,7 @@ public class PppoeStateTracker implements NetworkStateTracker {
         mLooper=looper;
         mLinkProperties = new LinkProperties();
         mNetworkCapabilities = new NetworkCapabilities();
-
+        mNetworkCapabilities.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
         if (PppoeNative.initPppoeNative() != 0 ) {
             Slog.e(TAG,"Can not init pppoe device layers");
             return;
@@ -445,7 +445,7 @@ public class PppoeStateTracker implements NetworkStateTracker {
                      mNetworkInfo.setDetailedState(DetailedState.CONNECTED, null, null);
 
                     mNetworkAgent = new NetworkAgent(mLooper, mContext, mNetworkName,
-                    mNetworkInfo, mNetworkCapabilities,mLinkProperties,60) {
+                    mNetworkInfo, mNetworkCapabilities,mLinkProperties,140) {
                         @Override
                         public void unwanted() {
                                 // We are user controlled, not driven by NetworkRequest.

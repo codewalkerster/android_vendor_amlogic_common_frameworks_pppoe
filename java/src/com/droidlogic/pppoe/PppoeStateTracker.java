@@ -368,11 +368,12 @@ public class PppoeStateTracker implements NetworkStateTracker {
                     Slog.i(TAG, "[EVENT: PPP DOWN]");
                     Slog.i(TAG, "DO NOT clear IP Config and PPP Property");
 
-                    SystemProperties.set(PROP_PPP_ADDR, "0.0.0.0");
-                    SystemProperties.set(PROP_PPP_MASK, "0.0.0.0");
-                    SystemProperties.set(PROP_PPP_DNS1, "0.0.0.0");
-                    SystemProperties.set(PROP_PPP_DNS2, "0.0.0.0");
-                    SystemProperties.set(PROP_PPP_GW, "0.0.0.0");
+//                    SystemProperties.set(PROP_PPP_ADDR, "0.0.0.0");
+//                    SystemProperties.set(PROP_PPP_MASK, "0.0.0.0");
+//                    SystemProperties.set(PROP_PPP_DNS1, "0.0.0.0");
+//                    SystemProperties.set(PROP_PPP_DNS2, "0.0.0.0");
+//                    SystemProperties.set(PROP_PPP_GW, "0.0.0.0");
+
                     info.setIfName(mInterfaceName);
                     info.setIpAddress("0.0.0.0");
                     info.setNetMask("0.0.0.0");
@@ -417,7 +418,7 @@ public class PppoeStateTracker implements NetworkStateTracker {
                             // Shut up!
                         }
                         i++;
-                    } while(info.getIpAddress().equals("0.0.0.0") && i<10);
+                    } while(i<10);
 
                     prop_val = SystemProperties.get(PROP_PPP_MASK, "0.0.0.0");
                     info.setNetMask(prop_val);

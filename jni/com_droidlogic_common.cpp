@@ -449,6 +449,9 @@ pfunc_is_interested_event pfunc_check)
             ALOGE("kobject_event socket readable: [%s]", rbuf);
     }
 
+    if (buff) {
+        free(buff);
+    }
     return rbuf;
 
 error:

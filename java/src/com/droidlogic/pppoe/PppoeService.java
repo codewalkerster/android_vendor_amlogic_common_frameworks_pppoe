@@ -42,7 +42,7 @@ public class PppoeService<syncronized> extends IPppoeManager.Stub{
         private String[] DevName;
         private static final String TAG = "PppoeService";
         private int isPppoeEnabled ;
-        private int mPppoeState= PppoeManager.PPPOE_STATE_UNKNOWN;
+        private int mPppoeState = PppoeManager.PPPOE_STATE_UNKNOWN;
          /** {@hide} */
         public static final String PPPOE_ON      = "pppoe_on";
          /** {@hide} */
@@ -58,7 +58,7 @@ public class PppoeService<syncronized> extends IPppoeManager.Stub{
          /** {@hide} */
         public static final String PPPOE_IFNAME  = "pppoe_ifname";
 
-        public PppoeService(Context context, PppoeStateTracker Tracker){
+        public PppoeService(Context context, PppoeStateTracker Tracker) {
                 mTracker = Tracker;
                 mContext = context;
 
@@ -66,7 +66,6 @@ public class PppoeService<syncronized> extends IPppoeManager.Stub{
                 Slog.i(TAG,"Pppoe dev enabled " + isPppoeEnabled );
                 getDeviceNameList();
                 setPppoeState(isPppoeEnabled);
-                registerForBroadcasts();
                 Slog.i(TAG, "Trigger the pppoe monitor");
                 mTracker.StartPolling();
         }
@@ -129,12 +128,6 @@ public class PppoeService<syncronized> extends IPppoeManager.Stub{
                 Settings.Secure.putString(cr, PPPOE_ROUTE, info.getRouteAddr());
                 Settings.Secure.putString(cr, PPPOE_MASK,info.getNetMask());
         }
-        private void registerForBroadcasts() {
-                IntentFilter intentFilter = new IntentFilter();
-                intentFilter.addAction(Intent.ACTION_SCREEN_ON);
-                intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
-                mContext.registerReceiver(mReceiver, intentFilter);
-        }
 
         public int getTotalInterface() {
                 return PppoeNative.getInterfaceCnt();
@@ -179,23 +172,6 @@ public class PppoeService<syncronized> extends IPppoeManager.Stub{
                     enabled ? PppoeManager.PPPOE_STATE_ENABLED : PppoeManager.PPPOE_STATE_DISABLED);
         }
 
-        private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                        String action = intent.getAction();
-                        if (action.equals(Intent.ACTION_SCREEN_ON)) {
-                                Slog.d(TAG, "ACTION_SCREEN_ON");
-                                try {
-                                        mTracker.resetInterface();
-                                } catch (UnknownHostException e) {
-                                        Slog.e(TAG, "Wrong pppoe configuration");
-                                }
-                        } else if (action.equals(Intent.ACTION_SCREEN_OFF)) {
-                                Slog.d(TAG, "ACTION_SCREEN_OFF");
-                                mTracker.stopInterface(false);
-                        }
-                }
-        };
 
         public synchronized void setPppoeState(int state) {
                 Slog.i(TAG, "setPppoeState from " + mPppoeState + " to "+ state);

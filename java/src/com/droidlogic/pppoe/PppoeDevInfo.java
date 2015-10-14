@@ -12,7 +12,7 @@ public class PppoeDevInfo implements Parcelable {
     private String route;
     private String dns;
     private String mode;
-    public static final String PPPOE_CONN_MODE_DHCP= "dhcp";
+    public static final String PPPOE_CONN_MODE_DHCP = "dhcp";
     public static final String PPPOE_CONN_MODE_MANUAL = "manual";
 
     public PppoeDevInfo () {

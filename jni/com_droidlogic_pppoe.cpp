@@ -31,6 +31,7 @@
 
 
 #define PPPOE_PKG_NAME "com/droidlogic/pppoe/PppoeNative"
+#define MAX_FGETS_LEN 4
 
 namespace android {
 static struct fieldIds {
@@ -85,12 +86,13 @@ static int netlink_init_pppoe_list(void)
     interface_info_t *intfinfo;
     int index;
     FILE *ifidx;
-    #define MAX_FGETS_LEN 4
     char idx[MAX_FGETS_LEN+1];
     int i;
 
     for ( i = 0; i < NR_ETHER_INTERFACES; i++) {
         pppoe_if_list[i].if_index = -1;
+        if (pppoe_if_list[i].name != NULL)
+            free(pppoe_if_list[i].name);
         pppoe_if_list[i].name = NULL;
         nr_pppoe_if = 0;
     }
@@ -112,6 +114,9 @@ static int netlink_init_pppoe_list(void)
                 fclose(typefd);
                 if (type >= ARPHRD_TUNNEL && type < ARPHRD_IEEE802_TR)
                     continue;
+            } else {
+                ALOGE("Can not open %s for read",path);
+                continue;
             }
 
             snprintf(path, SYSFS_PATH_MAX,"%s/%s/ifindex",SYSFS_CLASS_NET,de->d_name);
@@ -135,9 +140,8 @@ static int netlink_init_pppoe_list(void)
             }
         }
         closedir(netdir);
+        ret = 0;
     }
-    ret = 0;
-error:
     return ret;
 }
 
@@ -168,9 +172,9 @@ static jint com_droidlogic_pppoe_PppoeNative_initPppoeNative
     return ret;
 error:
     ALOGE("%s exited with error",__FUNCTION__);
-    if (nl_socket_netlink_route >0)
+    if (nl_socket_netlink_route >= 0)
         close(nl_socket_netlink_route);
-    if (nl_socket_kobj_uevent >0)
+    if (nl_socket_kobj_uevent >= 0)
         close(nl_socket_kobj_uevent);
     return ret;
 }
@@ -180,7 +184,7 @@ static jstring com_droidlogic_pppoe_PppoeNative_getInterfaceName
 (JNIEnv *env, jobject clazz, jint index)
 {
     int ret;
-    char ifname[IFNAMSIZ+1]= {0};
+    char ifname[IFNAMSIZ+1] = {0};
     ALOGI("User ask for device name on %d, total:%d",index, nr_pppoe_if);
 
     if (nr_pppoe_if == 0 || index >= nr_pppoe_if) {
@@ -193,7 +197,7 @@ static jstring com_droidlogic_pppoe_PppoeNative_getInterfaceName
         ALOGI("No device name found");
     }
 
-    return env->NewStringUTF(ret==0 ? ifname:NULL);
+    return env->NewStringUTF(ret == 0 ? ifname:NULL);
 }
 
 

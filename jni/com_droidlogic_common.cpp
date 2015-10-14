@@ -74,16 +74,14 @@ static const char * flag_desc_tbl[32] = {
     "UNDEFINED",
 };
 
-static char* if_flags_desc(int flags, char *desc) {
+static void if_flags_desc(int flags, char *desc) {
     desc[0] = '\0';
     for (int i = 18; i >= 0; i--) {
-        if (flags & (1<<i)) {
+        if (flags & (1 << i)) {
             strcat(desc, " ");
             strcat(desc, flag_desc_tbl[i]);
         }
     }
-
-    return desc;
 }
 
 
@@ -146,6 +144,7 @@ pfunc_is_interested_event pfunc_check)
             }
 
             if (pfunc_check && !pfunc_check(ifname)) {
+                ALOGI("pfunc_check error");
                 return -1;
             }
             ALOGI("Address %s %s/%d %s %u %u" ,
@@ -242,12 +241,13 @@ static void parseBinaryNetlinkMessage
             }
 
             desc = (char*)((type == RTM_DELLINK) ? "DELLINK" : "NEWLINK");
+            if_flags_desc(einfo->ifi_flags, flags_desc);
 
-            ALOGI("%s: %s(%d), flags=0X%X(%s)", ifname, desc, type, einfo->ifi_flags, if_flags_desc(einfo->ifi_flags, flags_desc));
+            ALOGI("%s: %s(%d), flags=0X%X(%s)", ifname, desc, type, einfo->ifi_flags, flags_desc);
 
             snprintf(result,rbufsize-guard, "%s:%d:",ifname,type);
             guard += strlen(result);
-            result +=guard;
+            result += guard;
             *pguard = guard;
         }
         else if (nh->nlmsg_type == RTM_DELADDR || nh->nlmsg_type == RTM_NEWADDR) {
@@ -267,7 +267,7 @@ static void parseBinaryNetlinkMessage
             }
             snprintf(result,rbufsize-guard, "%s:%d:",ifname,nh->nlmsg_type);
             guard += strlen(result);
-            result +=guard;
+            result += guard;
             *pguard = guard;
         }
 
@@ -307,7 +307,6 @@ static void parseAsciiNetlinkMessage
     int param_idx = 0;
     int i;
     int first = 1;
-    char *path = NULL;
     const char *action = NULL;
     int seq;
     char *subsys = NULL;
@@ -340,7 +339,6 @@ static void parseAsciiNetlinkMessage
                     return;
                 }
             }
-            path = strdup(p+1);
             first = 0;
         } else {
             const char* a;
@@ -368,6 +366,10 @@ static void parseAsciiNetlinkMessage
         guard += strlen(result);
         }
     }
+    if (net_if != NULL)
+        free(net_if);
+    if (subsys != NULL)
+        free(subsys);
     rbuf[guard] = '\0';
     *pguard = guard;
     if (rbuf[0]) ALOGI("%s",rbuf);
@@ -375,7 +377,7 @@ static void parseAsciiNetlinkMessage
 }
 
 
-static char* waitForNetInterfaceEvent
+static int waitForNetInterfaceEvent
 (int nl_socket_netlink_route, int nl_socket_kobj_uevent,
 char *rbuf, int *pguard,
 pfunc_update_interface_list pfunc,
@@ -400,12 +402,12 @@ pfunc_is_interested_event pfunc_check)
     iov.iov_base = buff;
     iov.iov_len = NL_POLL_MSG_SZ;
     msg.msg_name = NULL;
-    msg.msg_namelen =  0;
-    msg.msg_iov =  &iov;
-    msg.msg_iovlen =  1;
-    msg.msg_control =  NULL;
-    msg.msg_controllen =  0;
-    msg.msg_flags =  0;
+    msg.msg_namelen = 0;
+    msg.msg_iov = &iov;
+    msg.msg_iovlen = 1;
+    msg.msg_control = NULL;
+    msg.msg_controllen = 0;
+    msg.msg_flags = 0;
 
     maxfd = (nl_socket_netlink_route >= nl_socket_kobj_uevent) ?
         nl_socket_netlink_route: nl_socket_kobj_uevent;
@@ -431,7 +433,7 @@ pfunc_is_interested_event pfunc_check)
 
     if (FD_ISSET(nl_socket_netlink_route, &readable)) {
         old_guard = *pguard;
-        if ((len = recvmsg(nl_socket_netlink_route, &msg, 0))>= 0) {
+        if ((len = recvmsg(nl_socket_netlink_route, &msg, 0)) >= 0) {
             parseBinaryNetlinkMessage(buff, len, rbuf, RET_STR_SZ, pguard,pfunc_check);
         }
 
@@ -441,7 +443,7 @@ pfunc_is_interested_event pfunc_check)
 
     if (FD_ISSET(nl_socket_kobj_uevent, &readable)) {
         old_guard = *pguard;
-        if ((len = recvmsg(nl_socket_kobj_uevent, &msg, 0))>= 0) {
+        if ((len = recvmsg(nl_socket_kobj_uevent, &msg, 0)) >= 0) {
             parseAsciiNetlinkMessage(buff, len, rbuf, RET_STR_SZ, pguard,pfunc_check);
             pfunc();
         }
@@ -452,12 +454,12 @@ pfunc_is_interested_event pfunc_check)
     if (buff) {
         free(buff);
     }
-    return rbuf;
+    return 0;
 
 error:
     if (buff)
         free(buff);
-    return NULL;
+    return -1;
 }
 
 
@@ -492,7 +494,7 @@ static int open_NETLINK_socket(int netlinkFamily, int groups)
     return mysocket;
 error:
     ALOGE("%s failed" ,__FUNCTION__);
-    if (mysocket >0)
+    if (mysocket > 0)
         close(mysocket);
     return ret;
 }
@@ -501,7 +503,7 @@ error:
 static int find_empty_node(interface_info_t *node_table, int nr_nodes)
 {
     int i;
-    for ( i = 0; i <nr_nodes; i++) {
+    for ( i = 0; i < nr_nodes; i++) {
         if (node_table[i].if_index == -1)
             return i;
     }
@@ -529,13 +531,12 @@ static int add_interface_node_to_list(interface_info_t *node_table, int nr_nodes
 
 
 static int getInterfaceName(interface_info_t *node_table, int nr_nodes,
-                        int index, char *ifname)
-{
+    int index, char *ifname) {
     int i, j;
     interface_info_t *info;
 
     for ( i = 0, j = -1; i < nr_nodes; i++) {
-        info= node_table + i;
+        info = node_table + i;
         if (node_table[i].if_index != -1)
             j++;
         if (j == index) {
@@ -545,10 +546,7 @@ static int getInterfaceName(interface_info_t *node_table, int nr_nodes,
         }
     }
 
-    ifname[0]='\0';
+    ifname[0] = '\0';
     return -1;
 }
-
-
-//};
 

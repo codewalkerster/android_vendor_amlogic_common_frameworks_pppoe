@@ -52,7 +52,7 @@ import android.util.Slog;
  */
 public class PppoeStateTracker implements NetworkStateTracker {
 
-    private static final String TAG="PppoeStateTracker";
+    private static final String TAG = "PppoeStateTracker";
     private static final String PROP_PPP_ADDR = "dhcp.ppp0.ipaddress";
     private static final String PROP_PPP_MASK = "dhcp.ppp0.mask";
     private static final String PROP_PPP_DNS1 = "dhcp.ppp0.dns1";
@@ -73,7 +73,9 @@ public class PppoeStateTracker implements NetworkStateTracker {
     private PppoeManager mEM;
     private boolean mServiceStarted;
     private boolean mInterfaceStopped;
+    private boolean mPppoeConnectStates;
     private String mInterfaceName = "ppp0";
+    private String mInterfaceName1 = "ppp1";
     private DhcpInfoInternal mDhcpInfoInternal;
     private PppoeMonitor mMonitor;
 
@@ -100,7 +102,8 @@ public class PppoeStateTracker implements NetworkStateTracker {
         mNetworkInfo = new NetworkInfo(netType, 0, networkName, "");
         mNetworkInfo.setIsAvailable(false);
         setTeardownRequested(false);
-        mLooper=looper;
+        mLooper = looper;
+        mPppoeConnectStates = false;
         mLinkProperties = new LinkProperties();
         mNetworkCapabilities = new NetworkCapabilities();
         mNetworkCapabilities.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
@@ -177,7 +180,7 @@ public class PppoeStateTracker implements NetworkStateTracker {
 
     private boolean configureInterface(PppoeDevInfo info) throws UnknownHostException {
         mInterfaceStopped = false;
-        Info=info;
+        Info = info;
         mDhcpInfoInternal = new DhcpInfoInternal();
         mDhcpInfoInternal.ipAddress = info.getIpAddress();
         mDhcpInfoInternal.addRoute(new RouteInfo(NetworkUtils.numericToInetAddress(info.getRouteAddr())));
@@ -404,7 +407,7 @@ public class PppoeStateTracker implements NetworkStateTracker {
                     Slog.i(TAG, "[EVENT: PPP UP]");
                     newNetworkstate = true;
 
-                    int i=0;
+                    int i = 0;
 
                     info.setIfName(mInterfaceName);
                     String prop_val = null;
@@ -418,7 +421,7 @@ public class PppoeStateTracker implements NetworkStateTracker {
                             // Shut up!
                         }
                         i++;
-                    } while(i<10);
+                    } while (i < 10);
 
                     prop_val = SystemProperties.get(PROP_PPP_MASK, "0.0.0.0");
                     info.setNetMask(prop_val);
@@ -458,6 +461,7 @@ public class PppoeStateTracker implements NetworkStateTracker {
                     break;
                 }
             }
+            mPppoeConnectStates = false;
             return true;
         }
     };
@@ -472,12 +476,16 @@ public class PppoeStateTracker implements NetworkStateTracker {
     }
     public void notifyStateChange(String ifname,DetailedState state) {
         Slog.i(TAG, "report state change:" + mLastState.toString() + "->" + state.toString() + " on dev " + ifname);
-        if (ifname.equals(mInterfaceName)) {
+        if ((ifname.equals(mInterfaceName) && mLastState != state)) {
             mLastState = state;
+            mPppoeConnectStates = true;
             synchronized(this) {
                 mTrackerTarget.sendEmptyMessage(state.equals(DetailedState.CONNECTED)
                     ? EVENT_CONNECTED : EVENT_DISCONNECTED);
             }
+        } else if (ifname.equals(mInterfaceName1) && !mPppoeConnectStates) {
+            mPppoeConnectStates = true;
+            mTrackerTarget.sendEmptyMessage(EVENT_DISCONNECTED);
         }
     }
 
@@ -569,33 +577,33 @@ public class PppoeStateTracker implements NetworkStateTracker {
     /**
      * Informs the state tracker that another interface is stacked on top of it.
      **/
-    public void addStackedLink(LinkProperties link){
+    public void addStackedLink(LinkProperties link) {
     }
 
     /**
      * Informs the state tracker that a stacked interface has been removed.
      **/
-    public void removeStackedLink(LinkProperties link){
+    public void removeStackedLink(LinkProperties link) {
     }
 
     /*
      * Called once to setup async channel between this and
      * the underlying network specific code.
      */
-    public void supplyMessenger(Messenger messenger){
+    public void supplyMessenger(Messenger messenger) {
     }
 
     /*
      * Network interface name that we'll lookup for sampling data
      */
-    public String getNetworkInterfaceName(){
+    public String getNetworkInterfaceName() {
         return null;
     }
 
     /*
      * Save the starting sample
      */
-    public void startSampling(SamplingDataTracker.SamplingSnapshot s){
+    public void startSampling(SamplingDataTracker.SamplingSnapshot s) {
     }
 
     /*
@@ -613,7 +621,7 @@ public class PppoeStateTracker implements NetworkStateTracker {
      * Get interesting information about this network link
      * @return a copy of link information, null if not available
      */
-    public LinkQualityInfo getLinkQualityInfo(){
+    public LinkQualityInfo getLinkQualityInfo() {
         return null;
     }
 }

@@ -53,7 +53,7 @@ static void parseAsciiNetlinkMessage
 static void parseBinaryNetlinkMessage
 (char *buff, int len, char *rbuf, int rbufsize, int *pguard, pfunc_is_interested_event pfunc_check);
 
-static char* waitForNetInterfaceEvent
+static int waitForNetInterfaceEvent
 (int nl_socket_netlink_route, int nl_socket_kobj_uevent,
 char *rbuf, int *pguard, pfunc_update_interface_list pfunc);
 static int find_empty_node(interface_info_t *node_table, int nr_nodes);

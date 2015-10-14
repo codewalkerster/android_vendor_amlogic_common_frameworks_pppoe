@@ -21,7 +21,7 @@ public class PppoeMonitor {
     private static final int INTERFACE_UP = 3;
     private static final int DEV_ADDED = 4;
     private static final int DEV_REMOVED = 5;
-    private static final String connectedEvent =    "CONNECTED";
+    private static final String connectedEvent = "CONNECTED";
     private static final String disconnectedEvent = "DISCONNECTED";
 
     private static final int NEW_LINK = 16;

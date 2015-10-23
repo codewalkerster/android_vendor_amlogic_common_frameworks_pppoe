@@ -23,12 +23,12 @@ import android.net.LinkAddress;
 import android.net.NetworkCapabilities;
 import android.net.LinkProperties;
 import android.net.LinkQualityInfo;
-import android.net.NetworkStateTracker;
+//import android.net.NetworkStateTracker;
 import android.net.NetworkUtils;
 import android.net.NetworkInfo.DetailedState;
 import android.net.NetworkAgent;
 import android.net.Network;
-import android.net.SamplingDataTracker;
+//import android.net.SamplingDataTracker;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -50,7 +50,7 @@ import android.util.Slog;
  *
  * @hide
  */
-public class PppoeStateTracker implements NetworkStateTracker {
+public class PppoeStateTracker /*implements NetworkStateTracker*/ {
 
     private static final String TAG = "PppoeStateTracker";
     private static final String PROP_PPP_ADDR = "dhcp.ppp0.ipaddress";
@@ -229,7 +229,7 @@ public class PppoeStateTracker implements NetworkStateTracker {
     }
 
 
-    @Override
+    //@Override
     public String getTcpBufferSizesPropName() {
         // TODO Auto-generated method stub
         return "net.tcp.buffersize.pppoe";
@@ -240,13 +240,13 @@ public class PppoeStateTracker implements NetworkStateTracker {
         mMonitor.startMonitoring();
         Slog.i(TAG, "end monitoring");
     }
-    @Override
+    //@Override
     public boolean isAvailable() {
         // Only say available if we have interfaces and user did not disable us.
         return ((mEM.getTotalInterface() != 0) && (mEM.getPppoeState() != PppoeManager.PPPOE_STATE_DISABLED));
     }
 
-    @Override
+    //@Override
     public boolean reconnect() {
         Slog.i(TAG, ">>>reconnect");
         try {
@@ -266,13 +266,13 @@ public class PppoeStateTracker implements NetworkStateTracker {
 
     }
 
-    @Override
+    //@Override
     public boolean setRadio(boolean turnOn) {
         // TODO Auto-generated method stub
         return false;
     }
 
-    @Override
+    //@Override
     public void startMonitoring(Context context, Handler target) {
         Slog.i(TAG,"start to monitor the pppoe devices");
         if (mServiceStarted) {
@@ -302,12 +302,12 @@ public class PppoeStateTracker implements NetworkStateTracker {
         }
     }
 
-    @Override
+    //@Override
     public void setNetId(int netId) {
         mNetwork = new Network(netId);
     }
 
-    @Override
+    //@Override
     public Network getNetwork() {
         return mNetwork;
     }
@@ -347,11 +347,12 @@ public class PppoeStateTracker implements NetworkStateTracker {
                     stopInterface(true);
                 }
             }
+            /*
             Message msg = mTarget.obtainMessage(EVENT_CONFIGURATION_CHANGED, mNetworkInfo);
             msg.sendToTarget();
 
             msg = mTarget.obtainMessage(EVENT_STATE_CHANGED, mNetworkInfo);
-            msg.sendToTarget();
+            msg.sendToTarget();*/
         }
     }
     public DhcpInfo getDhcpInfo() {
@@ -603,16 +604,16 @@ public class PppoeStateTracker implements NetworkStateTracker {
     /*
      * Save the starting sample
      */
-    public void startSampling(SamplingDataTracker.SamplingSnapshot s) {
-    }
+    //public void startSampling(SamplingDataTracker.SamplingSnapshot s) {
+    //}
 
     /*
      * Save the ending sample
      */
-    public void stopSampling(SamplingDataTracker.SamplingSnapshot s) {
-    }
+    //public void stopSampling(SamplingDataTracker.SamplingSnapshot s) {
+    //}
 
-    @Override
+    //@Override
     public void captivePortalCheckCompleted(boolean isCaptivePortal) {
         // not implemented
     }

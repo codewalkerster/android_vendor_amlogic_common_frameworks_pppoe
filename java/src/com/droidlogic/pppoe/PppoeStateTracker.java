@@ -91,7 +91,6 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
     private final Looper mLooper;
     private NetworkAgent mNetworkAgent;
     private String mNetworkName;
-    private Handler mTarget;
     private Handler mTrackerTarget;
     private Context mContext;
     private static DetailedState mLastState = DetailedState.DISCONNECTED;
@@ -130,8 +129,7 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
                 String ifname = info.getIfName();
 
                 NetworkUtils.resetConnections(ifname, NetworkUtils.RESET_ALL_ADDRESSES);
-                if (!suspend)
-                    NetworkUtils.disableInterface(ifname);
+
             }
         }
 
@@ -273,15 +271,14 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
     }
 
     //@Override
-    public void startMonitoring(Context context, Handler target) {
+    public void startMonitoring(Context context) {
         Slog.i(TAG,"start to monitor the pppoe devices");
         if (mServiceStarted) {
             mContext = context;
             IBinder b = ServiceManager.getService(PPPOE_SERVICE);
             IPppoeManager PppoeService = IPppoeManager.Stub.asInterface(b);
             mEM = new PppoeManager(PppoeService, context);
-            mTarget = target;
-            mTrackerTarget = new Handler(target.getLooper(), mTrackerHandlerCallback);
+            mTrackerTarget = new Handler(mTrackerHandlerCallback);
             if (mEM == null) {
                 Slog.i(TAG,"failed to start startMonitoring");
                 return;

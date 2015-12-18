@@ -90,6 +90,7 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
     private NetworkInfo mNetworkInfo;
     private final Looper mLooper;
     private NetworkAgent mNetworkAgent;
+    private Handler mTarget;
     private String mNetworkName;
     private Handler mTrackerTarget;
     private Context mContext;
@@ -271,14 +272,15 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
     }
 
     //@Override
-    public void startMonitoring(Context context) {
+    public void startMonitoring(Context context, Handler target) {
         Slog.i(TAG,"start to monitor the pppoe devices");
         if (mServiceStarted) {
             mContext = context;
             IBinder b = ServiceManager.getService(PPPOE_SERVICE);
             IPppoeManager PppoeService = IPppoeManager.Stub.asInterface(b);
             mEM = new PppoeManager(PppoeService, context);
-            mTrackerTarget = new Handler(mTrackerHandlerCallback);
+            mTarget = target;
+            mTrackerTarget = new Handler(target.getLooper(), mTrackerHandlerCallback);
             if (mEM == null) {
                 Slog.i(TAG,"failed to start startMonitoring");
                 return;

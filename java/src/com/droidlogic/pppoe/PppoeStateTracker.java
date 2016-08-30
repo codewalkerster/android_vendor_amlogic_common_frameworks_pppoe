@@ -129,7 +129,7 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
                 Slog.i(TAG, "stop interface");
                 String ifname = info.getIfName();
 
-                NetworkUtils.resetConnections(ifname, NetworkUtils.RESET_ALL_ADDRESSES);
+                //NetworkUtils.resetConnections(ifname, NetworkUtils.RESET_ALL_ADDRESSES);
 
             }
         }
@@ -214,7 +214,7 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
                 synchronized(this) {
                     if (mInterfaceName != null) {
                         Slog.i(TAG, "reset device " + mInterfaceName);
-                        NetworkUtils.resetConnections(mInterfaceName, NetworkUtils.RESET_ALL_ADDRESSES);
+                        //NetworkUtils.resetConnections(mInterfaceName, NetworkUtils.RESET_ALL_ADDRESSES);
                     }
 
                     Slog.i(TAG, "Force the connection disconnected before configuration");

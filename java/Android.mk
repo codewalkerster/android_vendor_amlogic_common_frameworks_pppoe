@@ -20,5 +20,9 @@ LOCAL_MODULE := droidlogic.frameworks.pppoe
 LOCAL_SRC_FILES := $(call all-java-files-under,src)
 LOCAL_MODULE_TAGS := optional
 
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo OK),OK)
+LOCAL_PROPRIETARY_MODULE := true
+endif
+
 include $(BUILD_JAVA_LIBRARY)
 

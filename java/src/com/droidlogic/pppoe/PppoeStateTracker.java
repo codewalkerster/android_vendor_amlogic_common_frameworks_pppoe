@@ -235,9 +235,11 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
     }
 
     public void StartPolling() {
-        Slog.i(TAG, "start monitoring");
-        mMonitor.startMonitoring();
-        Slog.i(TAG, "end monitoring");
+        if (mServiceStarted) {
+            Slog.i(TAG, "start monitoring");
+            mMonitor.startMonitoring();
+            Slog.i(TAG, "end monitoring");
+        }
     }
     //@Override
     public boolean isAvailable() {
@@ -247,19 +249,21 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
 
     //@Override
     public boolean reconnect() {
-        Slog.i(TAG, ">>>reconnect");
-        try {
-            if (mEM.getPppoeState() != PppoeManager.PPPOE_STATE_DISABLED ) {
-                // maybe this is the first time we run, so set it to enabled
-                mEM.setPppoeEnabled(true);
-                if (!mEM.pppoeConfigured()) {
-                    mEM.pppoeSetDefaultConf();
+        if (mServiceStarted) {
+            Slog.i(TAG, ">>>reconnect");
+            try {
+                if (mEM.getPppoeState() != PppoeManager.PPPOE_STATE_DISABLED ) {
+                    // maybe this is the first time we run, so set it to enabled
+                    mEM.setPppoeEnabled(true);
+                    if (!mEM.pppoeConfigured()) {
+                        mEM.pppoeSetDefaultConf();
+                    }
+                    return resetInterface();
                 }
-                return resetInterface();
+            } catch (UnknownHostException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
-        } catch (UnknownHostException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
         return false;
 

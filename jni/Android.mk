@@ -5,7 +5,9 @@ LOCAL_SRC_FILES:= \
     com_droidlogic_common.cpp \
     com_droidlogic_pppoe.cpp\
 
-#LOCAL_C_INCLUDES := $(JNI_H_INCLUDE)
+LOCAL_C_INCLUDES += \
+    libnativehelper/include/nativehelper
+
 
 LOCAL_SHARED_LIBRARIES := \
     liblog \

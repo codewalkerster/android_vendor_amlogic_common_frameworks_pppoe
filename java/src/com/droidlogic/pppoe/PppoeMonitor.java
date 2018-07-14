@@ -7,6 +7,7 @@ import android.net.NetworkInfo;
 import android.util.Config;
 import android.util.Slog;
 import java.util.StringTokenizer;
+import com.droidlogic.app.SystemControlManager;
 
 /**
  * Listens for events for pppoe, and passes them on
@@ -30,6 +31,7 @@ public class PppoeMonitor {
     private final String pppoe_running_flag = "net.pppoe.running";
 
     private PppoeStateTracker mTracker;
+    private SystemControlManager mSystemControlManager;
 
     public PppoeMonitor(PppoeStateTracker tracker) {
         mTracker = tracker;
@@ -49,11 +51,13 @@ public class PppoeMonitor {
         public void run() {
             int index;
             int i;
+            mSystemControlManager = new SystemControlManager(null);
+
             if (DEBUG) Slog.i(TAG, "Start run");
             for (;;) {
                 String eventName = PppoeNative.waitForEvent();
 
-                String propVal = SystemProperties.get(pppoe_running_flag);
+                String propVal = mSystemControlManager.getProperty(pppoe_running_flag);
                 if (DEBUG) Slog.i(TAG, "Start run for "+"eventName"+eventName+"propVal"+propVal);
                 int n = 0;
                 if (propVal.length() != 0) {

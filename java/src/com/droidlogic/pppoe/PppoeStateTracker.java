@@ -44,6 +44,8 @@ import android.os.RemoteException;
 import android.os.UserHandle;
 import android.util.*;
 import android.util.Slog;
+import com.droidlogic.app.SystemControlManager;
+
 /**
  * Track the state of Pppoe connectivity. All event handling is done here,
  * and all changes in connectivity state are initiated here.
@@ -95,6 +97,7 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
     private Handler mTrackerTarget;
     private Context mContext;
     private static DetailedState mLastState = DetailedState.DISCONNECTED;
+    private SystemControlManager mSystemControlManager;
 
     public PppoeStateTracker(Looper looper,int netType, String networkName) {
         Slog.i(TAG,"Starts ...");
@@ -278,6 +281,8 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
     //@Override
     public void startMonitoring(Context context, Handler target) {
         Slog.i(TAG,"start to monitor the pppoe devices");
+        mSystemControlManager = new SystemControlManager(mContext);
+
         if (mServiceStarted) {
             mContext = context;
             IBinder b = ServiceManager.getService(PPPOE_SERVICE);
@@ -395,7 +400,7 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
                     }
                     newNetworkstate = false;
 
-                    String ppp_err = SystemProperties.get(PROP_NAME_PPP_ERRCODE, PppoeManager.PROP_VAL_PPP_NOERR);
+                    String ppp_err = mSystemControlManager.getPropertyString(PROP_NAME_PPP_ERRCODE, PppoeManager.PROP_VAL_PPP_NOERR);
                     Slog.i(TAG, "ppp_err:" + ppp_err);
                     if (ppp_err.equals(PROP_VAL_PPP_NOERR)) {
                         setPppoeState(newNetworkstate, EVENT_DISCONNECTED, PppoeManager.PROP_VAL_PPP_NOERR);
@@ -416,7 +421,7 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
                     info.setIfName(mInterfaceName);
                     String prop_val = null;
                     do {
-                        prop_val = SystemProperties.get(PROP_PPP_ADDR, "0.0.0.0");
+                        prop_val = mSystemControlManager.getPropertyString(PROP_PPP_ADDR, "0.0.0.0");
                         info.setIpAddress(prop_val);
                         Slog.i(TAG, "ip:" + prop_val);
                         try {
@@ -427,19 +432,19 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
                         i++;
                     } while (i < 10);
 
-                    prop_val = SystemProperties.get(PROP_PPP_MASK, "0.0.0.0");
+                    prop_val = mSystemControlManager.getPropertyString(PROP_PPP_MASK, "0.0.0.0");
                     info.setNetMask(prop_val);
                     Slog.i(TAG, "mask:" + prop_val);
 
-                    prop_val = SystemProperties.get(PROP_PPP_DNS1, "0.0.0.0");
+                    prop_val = mSystemControlManager.getPropertyString(PROP_PPP_DNS1, "0.0.0.0");
                     info.setDnsAddr(prop_val);
                     Slog.i(TAG, "dns:" + prop_val);
 
-                    prop_val = SystemProperties.get(PROP_PPP_GW, "0.0.0.0");
+                    prop_val = mSystemControlManager.getPropertyString(PROP_PPP_GW, "0.0.0.0");
                     info.setRouteAddr(prop_val);
                     Slog.i(TAG, "gw:" + prop_val);
 
-                    SystemProperties.set(PROP_PPP_DEF_ROUTE,prop_val);
+                    mSystemControlManager.setProperty(PROP_PPP_DEF_ROUTE,prop_val);
                     mEM.UpdatePppoeDevInfo(info);
                     try {
                         configureInterface(info);

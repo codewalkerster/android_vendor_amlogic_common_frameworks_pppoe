@@ -58,7 +58,7 @@ public class PppoeMonitor {
         public void run() {
             int index;
             int i;
-            mSystemControlManager = new SystemControlManager(null);
+            mSystemControlManager = SystemControlManager.getInstance();
 
             if (DEBUG) Slog.i(TAG, "Start run");
             for (;;) {

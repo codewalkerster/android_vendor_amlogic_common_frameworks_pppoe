@@ -288,7 +288,7 @@ public class PppoeStateTracker /*implements NetworkStateTracker*/ {
     //@Override
     public void startMonitoring(Context context, Handler target) {
         Slog.i(TAG,"start to monitor the pppoe devices");
-        mSystemControlManager = SystemControlManager.getInstance();
+        mSystemControlManager = new SystemControlManager(mContext);
 
         if (mServiceStarted) {
             mContext = context;
